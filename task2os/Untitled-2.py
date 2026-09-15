@@ -10,18 +10,12 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 
 
-# ============================================================
-# MATRIX MULTIPLICATION USING THREADS
-# TensorFlow + ThreadPoolExecutor + Matplotlib
-# ============================================================
+
 
 SIZE = 100
 TASKS_PER_FRAME = 30
 
 
-# ============================================================
-# 1. GENERATE INPUT MATRICES
-# ============================================================
 
 tf.random.set_seed(42)
 
@@ -40,7 +34,6 @@ matrix_b = tf.random.uniform(
 )
 
 
-# Convert to NumPy for visualization/result storage
 a_np = matrix_a.numpy()
 b_np = matrix_b.numpy()
 
@@ -50,9 +43,7 @@ result = np.zeros(
 )
 
 
-# ============================================================
-# 2. THREAD-SAFE EXECUTION LOG
-# ============================================================
+
 
 class ExecutionLog:
 
@@ -69,9 +60,7 @@ class ExecutionLog:
 execution_log = ExecutionLog()
 
 
-# ============================================================
-# 3. MATRIX CELL WORKER
-# ============================================================
+
 
 class MatrixCellWorker:
 
@@ -85,23 +74,23 @@ class MatrixCellWorker:
 
         row, column = position
 
-        # Select one row of A
+        
         selected_row = self.A[row, :]
 
-        # Select one column of B
+       
         selected_column = self.B[:, column]
 
-        # TensorFlow performs the dot product
+       
         cell_value = tf.tensordot(
             selected_row,
             selected_column,
             axes=1
         )
 
-        # Store the calculated cell
+        
         self.output[row, column] = cell_value.numpy()
 
-        # Record when this cell was completed
+        
         self.log.add(row, column)
 
         return position
@@ -115,9 +104,6 @@ worker = MatrixCellWorker(
 )
 
 
-# ============================================================
-# 4. CREATE CELL POSITIONS
-# ============================================================
 
 cell_positions = [
     (row, column)
@@ -125,10 +111,6 @@ cell_positions = [
     for column in range(SIZE)
 ]
 
-
-# ============================================================
-# 5. MULTITHREADED EXECUTION
-# ============================================================
 
 print("\n" + "=" * 55)
 print("      100 x 100 MATRIX MULTIPLICATION")
@@ -170,9 +152,6 @@ with ThreadPoolExecutor(
 elapsed = time.perf_counter() - start
 
 
-# ============================================================
-# 6. VERIFY RESULT
-# ============================================================
 
 expected = tf.matmul(
     matrix_a,
@@ -195,9 +174,7 @@ else:
     print("Verification     : FAILED")
 
 
-# ============================================================
-# 7. SHOW SMALL PART OF RESULT
-# ============================================================
+
 
 print("\nFirst 3 x 3 values of Matrix C:\n")
 
@@ -209,9 +186,6 @@ print(
 )
 
 
-# ============================================================
-# 8. PREPARE ANIMATION
-# ============================================================
 
 completed_order = list(
     execution_log.cells
@@ -220,9 +194,7 @@ completed_order = list(
 animation_result = np.zeros_like(result)
 
 
-# ============================================================
-# 9. CREATE VISUALIZATION
-# ============================================================
+
 
 figure = plt.figure(
     figsize=(17, 7)
@@ -239,9 +211,6 @@ axis_b = figure.add_subplot(grid[0, 1])
 axis_c = figure.add_subplot(grid[0, 2])
 
 
-# ============================================================
-# 10. DISPLAY MATRIX A
-# ============================================================
 
 plot_a = axis_a.imshow(
     a_np,
@@ -258,9 +227,6 @@ axis_a.set_xlabel("Column")
 axis_a.set_ylabel("Row")
 
 
-# ============================================================
-# 11. DISPLAY MATRIX B
-# ============================================================
 
 plot_b = axis_b.imshow(
     b_np,
@@ -277,9 +243,6 @@ axis_b.set_xlabel("Column")
 axis_b.set_ylabel("Row")
 
 
-# ============================================================
-# 12. DISPLAY RESULT MATRIX C
-# ============================================================
 
 plot_c = axis_c.imshow(
     animation_result,
@@ -298,9 +261,6 @@ axis_c.set_xlabel("Column")
 axis_c.set_ylabel("Row")
 
 
-# ============================================================
-# 13. CURRENT ROW/COLUMN INDICATORS
-# ============================================================
 
 row_line, = axis_a.plot(
     [],
@@ -315,9 +275,7 @@ column_line, = axis_b.plot(
 )
 
 
-# ============================================================
-# 14. INFORMATION TEXT
-# ============================================================
+
 
 status_text = figure.text(
     0.5,
@@ -328,9 +286,6 @@ status_text = figure.text(
 )
 
 
-# ============================================================
-# 15. ANIMATION FRAMES
-# ============================================================
 
 total = len(completed_order)
 
@@ -338,10 +293,6 @@ number_of_frames = (
     total + TASKS_PER_FRAME - 1
 ) // TASKS_PER_FRAME
 
-
-# ============================================================
-# 16. ANIMATION FUNCTION
-# ============================================================
 
 def animate(frame):
 
@@ -354,8 +305,7 @@ def animate(frame):
 
     current = None
 
-    # Fill result cells according to
-    # the actual completion order
+    
     for index in range(first, last):
 
         row, column = completed_order[index]
@@ -370,30 +320,28 @@ def animate(frame):
         )
 
 
-    # Update result matrix
     plot_c.set_data(
         animation_result
     )
 
 
-    # Update current cell indicators
     if current is not None:
 
         row, column = current
 
-        # Row used from Matrix A
+       
         row_line.set_data(
             [0, SIZE - 1],
             [row, row]
         )
 
-        # Column used from Matrix B
+ 
         column_line.set_data(
             [column, column],
             [0, SIZE - 1]
         )
 
-        # Current cell
+   
         axis_c.set_title(
             f"RESULT MATRIX C\n"
             f"C[{row}][{column}]",
@@ -402,7 +350,6 @@ def animate(frame):
         )
 
 
-    # Progress information
     progress = last / total * 100
 
     status_text.set_text(
@@ -422,9 +369,6 @@ def animate(frame):
     )
 
 
-# ============================================================
-# 17. START ANIMATION
-# ============================================================
 
 animation = FuncAnimation(
     figure,
@@ -434,11 +378,6 @@ animation = FuncAnimation(
     repeat=False,
     blit=False
 )
-
-
-# ============================================================
-# 18. FINAL WINDOW SETTINGS
-# ============================================================
 
 figure.suptitle(
     "100 × 100 Matrix Multiplication "
@@ -455,9 +394,5 @@ plt.subplots_adjust(
     wspace=0.25
 )
 
-
-# ============================================================
-# 19. DISPLAY
-# ============================================================
 
 plt.show()
